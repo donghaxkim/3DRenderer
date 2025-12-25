@@ -37,4 +37,8 @@ def project(vertex, screen_width, screen_height, fov, viewer_distance):
     x_2d = vertex[0] * factor
     y_2d = vertex[1] * factor
 
-    
+    # Convert to screen coordinates
+    return (
+        int(x_2d + screen_width / 2),
+        int(-y_2d + screen_height / 2)
+    )
