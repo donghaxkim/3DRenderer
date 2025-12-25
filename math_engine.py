@@ -1,44 +1,22 @@
 import numpy as np
 
 def get_rotation_matrix(angle_x, angle_y):
-    # This creates a 3D matrix that tells points how to spin
-    #angle_x: how much to spin around the x-axis
-    #angle_y: how much to spin around the y-axis
+    # Order: Pitch (X) then Yaw (Y) to keep the vertical axis stable
+    rx = np.array([[1, 0, 0],
+                   [0, np.cos(angle_x), -np.sin(angle_x)],
+                   [0, np.sin(angle_x), np.cos(angle_x)]])
+    ry = np.array([[np.cos(angle_y), 0, np.sin(angle_y)],
+                   [0, 1, 0],
+                   [-np.sin(angle_y), 0, np.cos(angle_y)]])
+    return ry @ rx
 
-    # Matrix for spinning around the x-axis
-    rot_x = np.array([
-        [1, 0, 0],
-        [0, np.cos(angle_x), -np.sin(angle_x)],
-        [0, np.sin(angle_x), np.cos(angle_x)]
-    ])
-
-    # Matrix for spinning around the y-axis
-    rot_y = np.array([
-        [np.cos(angle_y), 0, np.sin(angle_y)],
-        [0, 1, 0],
-        [-np.sin(angle_y), 0, np.cos(angle_y)]
-    ])
-
-    # Multiply them together using @ for matrix multiplication
-    return rot_x @ rot_y
-
-def project(vertex, screen_width, screen_height, fov, viewer_distance):
-    # This converts 3D coordinates to 2D screen coordinates
-    # We add viewer_distance to the z-coordinate to make sure the closer objects are smaller
+def project(vertex, width, height, fov, viewer_distance):
     z = vertex[2] + viewer_distance
-
-    # Saftey check to avoid division by zero, don't divide by zero if a point is behind the  camera
-    if z <= 0: z = 0.1
-
-    # fov controls the width of the lens
-    # Dividing by z makes distant objects move toward the center
+    if z <= 0.1: z = 0.1
     factor = fov / z
+    return (int(vertex[0] * factor + width / 2), int(-vertex[1] * factor + height / 2))
 
-    x_2d = vertex[0] * factor
-    y_2d = vertex[1] * factor
-
-    # Convert to screen coordinates
-    return (
-        int(x_2d + screen_width / 2),
-        int(-y_2d + screen_height / 2)
-    )
+def screen_to_world(mouse_pos, width, height, rot_matrix, fov, viewer_distance):
+    x_2d, y_2d = mouse_pos[0] - width / 2, -(mouse_pos[1] - height / 2)
+    scale = viewer_distance / fov
+    return rot_matrix.T @ np.array([x_2d * scale, y_2d * scale, 0])
