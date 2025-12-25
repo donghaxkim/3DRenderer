@@ -26,4 +26,14 @@ class Mesh:
         connection = (start_idx, end_idx)
 
         self.edges.append(connection)
+
+    def get_vertex(self, index):
+        # This is a helper to grab a specific point's 3D coords using its ID
+        return self.vertices[index]
+
+    def get_transformed_vertices(self, matrix):
+        # This takes a rotation/translation matrix and applies it to every point in the mesh at once
+        # We use NumPy's @ operator to multiply the matrix
+        return [matrix @ v for v in self.vertices]
+    
     
